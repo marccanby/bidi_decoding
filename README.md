@@ -8,7 +8,25 @@
   <a href="https://fairseq.readthedocs.io/en/latest/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/fairseq/badge/?version=latest" /></a>
 </p>
 
-Code repository for "A Framework for Bidirectional Decoding: Case Study in Morphological Inflection"
+Code repository for [A Framework for Bidirectional Decoding: Case Study in Morphological Inflection](https://aclanthology.org/2023.findings-emnlp.297/) (Canby and Hockenmaier, 2023). 
+
+This code was forked from [fairseq](https://github.com/facebookresearch/fairseq) in 2021. Instructions on fairseq usage and installation are below. The bidirectional code is **mostly** in `examples/bidi_decoding`; however, minor changes have been made to other files. Future work will intend to fully modularize the code into that folder.
+
+In the paper, we train 5 types of models, using commands similar to those below:
+
+**L2R**: `fairseq-train ../sigmorphon-data/ --arch inflection_transformer --user-dir examples/bidi_decoding/ --criterion cross_entropy --log-interval 10 --patience 150 --task inflection --lang afb23 --new-schema --do-eval --eval-acc-print-samples --best-checkpoint-metric val_acc --maximize-best-checkpoint-metric --generate-args "{\"beam\": 5, \"max_len_a\": 1.2, \"max_len_b\": 10}" --lr 0.005 --validate-interval-updates 25 --save-dir checkpoints/ --num-workers 0 --hyper-size small --batch-size 800 --warmup-updates 4000`
+
+**R2L**: Same as L2R, but with `--do-r2l` appended to end
+
+**xH** (called `sep` in the command line argument): `fairseq-train ../sigmorphon-data/ --arch bidi_inflection_transformer --user-dir examples/bidi_decoding/ --criterion bidi_loss --log-interval 10 --patience 300 --task inflection --lang afb23 --new-schema --do-eval --eval-acc-print-samples --best-checkpoint-metric val_acc --maximize-best-checkpoint-metric --generate-args "{\"beam\": 5, \"max_len_a\": 1.2, \"max_len_b\": 10, \"use_bidi_generator\": true}" --lr 0.005 --validate-interval-updates 25 --save-dir checkpoints/ --num-workers 0 --loss-style sep --hyper-size small --batch-size 800 --warmup-updates 4000 --need-extra-spec`
+
+**xH-Rand** (called `sep-rand` in the command line argument): Same as xH, but with `--loss-style sep-rand` instead of `--loss-style sep`
+
+**MML**: Same as xH, but with `--loss-style MML` instead of `--loss-style sep`, and with `--order-temp 50` (to temper the order probability at early epochs, see paper)
+
+Reranking can be done by using `--rerank-test` (along with other arguments depending on which model want to rerank).
+
+Questions regarding code for bidirectional decoding should be addressed to Marc Canby at marc.canby@gmail.com.
 
 --------------------------------------------------------------------------------
 
